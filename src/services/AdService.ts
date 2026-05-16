@@ -37,7 +37,7 @@ class AdService {
         adId: AD_IDS.banner,
         adSize: BannerAdSize.ADAPTIVE_BANNER,
         position: BannerAdPosition.BOTTOM_CENTER,
-        margin: 0,
+        margin: 80,
         isTesting: true,
       });
       console.log('Banner shown ✅');

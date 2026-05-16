@@ -26,7 +26,7 @@ const Layout: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: colors.background }}>
-      <main className="flex-1 overflow-y-auto pb-24">
+      <main className="flex-1 overflow-y-auto pb-36">
         <div className="max-w-md mx-auto min-h-full">
           <Outlet />
         </div>
