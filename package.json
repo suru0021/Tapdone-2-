@@ -32,7 +32,7 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
-    "vite-plugin-pwa": "^0.20.5",
+    "vite-plugin-pwa": "^0.21.0",
     "@capacitor/android": "^6.2.0",
     "@capacitor/cli": "^6.2.0",
     "@types/node": "^22.14.0",
