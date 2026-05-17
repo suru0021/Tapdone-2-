@@ -1,77 +1,132 @@
-import React, { useEffect, useState } from "react";
-import confetti from "canvas-confetti";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ACHIEVEMENTS } from "../constants/achievements";
-import { Trophy, Star } from "lucide-react";
+import { Star, X } from "lucide-react";
 import { useTheme } from "../theme/ThemeContext";
+
+// Simple CSS confetti — no canvas-confetti library (crashes on Android WebView)
+const ConfettiPiece: React.FC<{ color: string; delay: number; x: number }> = ({ color, delay, x }) => (
+  <motion.div
+    className="fixed top-0 w-2 h-3 rounded-sm pointer-events-none z-[200]"
+    style={{ left: `${x}%`, backgroundColor: color }}
+    initial={{ y: -20, opacity: 1, rotate: 0 }}
+    animate={{ y: "100vh", opacity: 0, rotate: 720 }}
+    transition={{ duration: 2.5, delay, ease: "easeIn" }}
+  />
+);
+
+const CONFETTI_COLORS = ["#a855f7", "#fbbf24", "#34d399", "#60a5fa", "#f472b6", "#ffffff"];
 
 const Celebration: React.FC = () => {
   const { colors } = useTheme();
   const [activeAchievement, setActiveAchievement] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleUnlock = (e: any) => {
       const ids = e.detail as string[];
-      if (ids.length > 0) {
-        // Show the last unlocked one for simplicity, or queue them
-        setActiveAchievement(ids[ids.length - 1]);
-        
-        // Throw some confetti
-        confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: [colors.accentPrimary, colors.success, "#FACC15"]
-        });
+      if (!ids || ids.length === 0) return;
 
-        // Auto-hide after 5 seconds
-        setTimeout(() => setActiveAchievement(null), 5000);
-      }
+      // Clear any existing timer
+      if (timerRef.current) clearTimeout(timerRef.current);
+
+      setActiveAchievement(ids[ids.length - 1]);
+      setShowConfetti(true);
+
+      // Hide confetti after 2.5s
+      setTimeout(() => setShowConfetti(false), 2500);
+
+      // Auto-hide popup after 5s
+      timerRef.current = setTimeout(() => setActiveAchievement(null), 5000);
     };
 
     window.addEventListener("achievement-unlocked", handleUnlock);
-    return () => window.removeEventListener("achievement-unlocked", handleUnlock);
-  }, [colors]);
+    return () => {
+      window.removeEventListener("achievement-unlocked", handleUnlock);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const meta = ACHIEVEMENTS.find(a => a.id === activeAchievement);
 
+  const confettiPieces = Array.from({ length: 18 }, (_, i) => ({
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    delay: i * 0.08,
+    x: 5 + (i * 5.5),
+  }));
+
   return (
-    <AnimatePresence>
-      {activeAchievement && meta && (
-        <motion.div
-          initial={{ y: 100, opacity: 0, scale: 0.9 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 100, opacity: 0, scale: 0.9 }}
-          className="fixed bottom-24 left-6 right-6 z-[100] p-6 rounded-[32px] border-2 shadow-2xl flex items-center gap-5"
-          style={{ 
-            backgroundColor: colors.surface, 
-            borderColor: meta.color,
-            boxShadow: `0 20px 50px -10px ${meta.color}44`
-          }}
-        >
-          <div 
-            className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: meta.color + "22", color: meta.color }}
+    <>
+      {/* CSS Confetti — no library needed */}
+      <AnimatePresence>
+        {showConfetti && confettiPieces.map((p, i) => (
+          <ConfettiPiece key={i} {...p} />
+        ))}
+      </AnimatePresence>
+
+      {/* Achievement popup */}
+      <AnimatePresence>
+        {activeAchievement && meta && (
+          <motion.div
+            key={activeAchievement}
+            initial={{ y: 120, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 120, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="fixed bottom-28 left-4 right-4 z-[150] p-5 rounded-[28px] border-2 shadow-2xl flex items-center gap-4"
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: meta.color,
+              boxShadow: `0 16px 40px -8px ${meta.color}55`,
+            }}
           >
-            <meta.icon size={32} />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <Star size={12} fill={meta.color} color={meta.color} />
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-60" style={{ color: colors.textSecondary }}>Achievement Unlocked</span>
+            {/* Icon */}
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: meta.color + "22", color: meta.color }}
+            >
+              <meta.icon size={28} />
             </div>
-            <h3 className="text-lg font-black tracking-tighter leading-tight" style={{ color: colors.textPrimary }}>{meta.name}</h3>
-            <p className="text-xs font-medium opacity-60 leading-relaxed" style={{ color: colors.textSecondary }}>{meta.description}</p>
-          </div>
-          <button 
-            onClick={() => setActiveAchievement(null)}
-            className="w-8 h-8 rounded-full flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity"
-          >
-            <Trophy size={16} />
-          </button>
-        </motion.div>
-      )}
-    </AnimatePresence>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Star size={10} fill={meta.color} color={meta.color} />
+                <span
+                  className="text-[9px] font-black uppercase tracking-widest"
+                  style={{ color: colors.textSecondary, opacity: 0.7 }}
+                >
+                  Achievement Unlocked
+                </span>
+              </div>
+              <h3
+                className="text-base font-black tracking-tight leading-tight truncate"
+                style={{ color: colors.textPrimary }}
+              >
+                {meta.name}
+              </h3>
+              <p
+                className="text-xs font-medium leading-snug line-clamp-2"
+                style={{ color: colors.textSecondary, opacity: 0.6 }}
+              >
+                {meta.description}
+              </p>
+            </div>
+
+            {/* Close button */}
+            <button
+              onTouchEnd={(e) => { e.preventDefault(); setActiveAchievement(null); }}
+              onClick={() => setActiveAchievement(null)}
+              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+              style={{ backgroundColor: colors.border }}
+            >
+              <X size={14} style={{ color: colors.textSecondary }} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

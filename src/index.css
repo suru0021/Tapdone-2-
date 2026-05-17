@@ -11,6 +11,8 @@
 @layer base {
   body {
     @apply font-body antialiased selection:bg-zinc-800 selection:text-white;
+    background-color: #0a0a0a;
+    overflow: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {

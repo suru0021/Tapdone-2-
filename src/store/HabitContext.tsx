@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Preferences } from '@capacitor/preferences';
 
 export interface Habit {
@@ -71,21 +71,20 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [completions, setCompletions] = useState<Record<string, string[]>>({});
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [ready, setReady] = useState(false);
+  // BUG FIX: saveTimer to debounce saves — prevents lag from too many writes
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const load = async () => {
       try {
         const { value } = await Preferences.get({ key: KEY });
-        // Fallback to localStorage for migration
         const legacy = localStorage.getItem(KEY);
         const raw = value || legacy;
-
         if (raw) {
           const parsed = JSON.parse(raw) as HabitState;
           setHabits(parsed.habits || []);
           setCompletions(parsed.completions || {});
           setAchievements(parsed.achievements || []);
-          
           if (legacy && !value) {
             await Preferences.set({ key: KEY, value: raw });
           }
@@ -98,13 +97,19 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     load();
   }, []);
 
+  // BUG FIX: Debounced save — prevents multiple rapid writes causing lag
   useEffect(() => {
-    if (ready) {
+    if (!ready) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
       const state: HabitState = { habits, completions, achievements };
       const serialized = JSON.stringify(state);
       localStorage.setItem(KEY, serialized);
-      Preferences.set({ key: KEY, value: serialized });
-    }
+      Preferences.set({ key: KEY, value: serialized }).catch(() => {});
+    }, 300);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
   }, [habits, completions, achievements, ready]);
 
   const addHabit = useCallback(async (h: Omit<Habit, "id" | "createdAt">) => {
@@ -135,7 +140,7 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [completions]
   );
 
-  const toggleToday = useCallback(async (id: string) => {
+  const toggleToday = useCallback(async (id: string): Promise<boolean> => {
     const today = todayStr();
     let isNowCompleted = false;
     setCompletions(prev => {
@@ -155,7 +160,7 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     let count = 0;
     const cursor = new Date();
     let started = false;
-    while (true) {
+    for (let i = 0; i < 3650; i++) {
       const ds = todayStr(cursor);
       const due = isHabitDueOn(habit, cursor);
       if (due) {
@@ -164,14 +169,13 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           started = true;
         } else {
           if (!started && ds === todayStr()) {
-            // skip today (not done yet)
+            // skip today not yet done
           } else {
             break;
           }
         }
       }
       cursor.setDate(cursor.getDate() - 1);
-      if (count > 3650) break;
       if (cursor < new Date(habit.createdAt)) break;
     }
     return count;
@@ -211,24 +215,20 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const completionsThisWeek = useCallback((id: string) => {
     const arr = completions[id] || [];
     const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(now.setDate(diff));
+    // BUG FIX: Don't mutate 'now' — use a copy
+    const copy = new Date(now);
+    const day = copy.getDay();
+    const diff = copy.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(copy);
+    monday.setDate(diff);
     monday.setHours(0, 0, 0, 0);
-    
-    return arr.filter(d => {
-      const date = dateFromStr(d);
-      return date >= monday;
-    }).length;
+    return arr.filter(d => dateFromStr(d) >= monday).length;
   }, [completions]);
 
   const clearCustomIcon = useCallback(async (iconUrl: string) => {
-    setHabits(prev => prev.map(h => {
-      if (h.icon === iconUrl) {
-        return { ...h, icon: "Droplet" };
-      }
-      return h;
-    }));
+    setHabits(prev => prev.map(h =>
+      h.icon === iconUrl ? { ...h, icon: "Droplet" } : h
+    ));
   }, []);
 
   const exportData = useCallback(() => {
@@ -249,16 +249,17 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const globalStreak = useMemo(() => {
+    if (habits.length === 0) return 0;
     const daySet = new Set<string>();
     (Object.values(completions) as string[][]).forEach(arr => arr.forEach((d: string) => daySet.add(d)));
     if (daySet.size === 0) return 0;
-
     let count = 0;
     const cursor = new Date();
     let started = false;
-    while (true) {
+    const sortedDates = Array.from(daySet).sort();
+    const earliest = dateFromStr(sortedDates[0] as string);
+    for (let i = 0; i < 3650; i++) {
       const ds = todayStr(cursor);
-      // check if *any* habit was due this day
       const dueHabits = habits.filter(h => isHabitDueOn(h, cursor));
       if (dueHabits.length > 0) {
         if (daySet.has(ds)) {
@@ -266,15 +267,14 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           started = true;
         } else {
           if (!started && ds === todayStr()) {
-            // allow skip today if not yet done
+            // skip today
           } else {
             break;
           }
         }
       }
       cursor.setDate(cursor.getDate() - 1);
-      if (count > 3650) break;
-      if (daySet.size > 0 && cursor < dateFromStr(Array.from(daySet).sort()[0] as string)) break;
+      if (cursor < earliest) break;
     }
     return count;
   }, [habits, completions]);
@@ -284,7 +284,6 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const daySet = new Set<string>();
     (Object.values(completions) as string[][]).forEach(arr => arr.forEach((d: string) => daySet.add(d)));
     if (habits.length === 0 || daySet.size === 0) return 0;
-    
     const start = dateFromStr(Array.from(daySet).sort()[0] as string);
     const end = new Date();
     let totalDue = 0;
@@ -293,50 +292,48 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       totalDue += habits.filter(h => isHabitDueOn(h, cursor)).length;
       cursor.setDate(cursor.getDate() + 1);
     }
-    
-    return totalDue > 0 ? Math.round((totalComps / totalDue) * 100) : 0;
+    return totalDue > 0 ? Math.min(100, Math.round((totalComps / totalDue) * 100)) : 0;
   }, [habits, completions]);
 
+  // BUG FIX: Achievement check debounced — prevents rapid repeated dispatch
+  const achievementTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const checkAchievements = useCallback(() => {
-    const newUnlocks: string[] = [];
-    const unlockedIds = new Set(achievements.map(a => a.id));
-
-    const addIf = (id: string, cond: boolean) => {
-      if (cond && !unlockedIds.has(id)) newUnlocks.push(id);
-    };
-
-    const overallLongest = Math.max(0, ...habits.map(h => longestStreakFor(h.id)));
-    const totalDone = (Object.values(completions) as string[][]).reduce((a, b) => a + b.length, 0);
-
-    addIf("first_step", totalDone >= 1);
-    addIf("streak_3", globalStreak >= 3);
-    addIf("streak_7", globalStreak >= 7);
-    addIf("streak_30", globalStreak >= 30);
-    addIf("habit_master", overallLongest >= 30);
-    addIf("warrior", totalDone >= 100);
-
-    if (newUnlocks.length > 0) {
-      setAchievements(prev => [
-        ...prev,
-        ...newUnlocks.map(id => ({ id, unlockedAt: new Date().toISOString() }))
-      ]);
-      
-      // Trigger a custom event for the UI to show celebrate
-      window.dispatchEvent(new CustomEvent("achievement-unlocked", { detail: newUnlocks }));
-    }
+    if (achievementTimer.current) clearTimeout(achievementTimer.current);
+    achievementTimer.current = setTimeout(() => {
+      const newUnlocks: string[] = [];
+      const unlockedIds = new Set(achievements.map(a => a.id));
+      const addIf = (id: string, cond: boolean) => {
+        if (cond && !unlockedIds.has(id)) newUnlocks.push(id);
+      };
+      const overallLongest = Math.max(0, ...habits.map(h => longestStreakFor(h.id)));
+      const totalDone = (Object.values(completions) as string[][]).reduce((a, b) => a + b.length, 0);
+      addIf("first_step", totalDone >= 1);
+      addIf("streak_3", globalStreak >= 3);
+      addIf("streak_7", globalStreak >= 7);
+      addIf("streak_30", globalStreak >= 30);
+      addIf("habit_master", overallLongest >= 30);
+      addIf("warrior", totalDone >= 100);
+      if (newUnlocks.length > 0) {
+        setAchievements(prev => [
+          ...prev,
+          ...newUnlocks.map(id => ({ id, unlockedAt: new Date().toISOString() }))
+        ]);
+        window.dispatchEvent(new CustomEvent("achievement-unlocked", { detail: newUnlocks }));
+      }
+    }, 500);
   }, [achievements, habits, completions, globalStreak, longestStreakFor]);
 
   useEffect(() => {
-    if (ready) {
-      checkAchievements();
-    }
-  }, [ready, completions, habits, checkAchievements]);
+    if (ready) checkAchievements();
+  }, [ready, completions, habits]);
 
   const clearAll = useCallback(async () => {
     setHabits([]);
     setCompletions({});
     setAchievements([]);
     localStorage.removeItem(KEY);
+    await Preferences.remove({ key: KEY }).catch(() => {});
   }, []);
 
   const updateHabit = useCallback(async (id: string, updates: Partial<Habit>) => {
@@ -346,8 +343,7 @@ export const HabitProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const value = useMemo<HabitCtx>(() => ({
     habits, completions, achievements, ready, addHabit, restoreHabit, deleteHabit, toggleToday,
     isCompletedOn, streakFor, longestStreakFor, totalCompletionsFor,
-    completionsThisWeek, clearCustomIcon,
-    exportData, importData, clearAll,
+    completionsThisWeek, clearCustomIcon, exportData, importData, clearAll,
     globalStreak, overallConsistency, checkAchievements, updateHabit
   }), [habits, completions, achievements, ready, addHabit, restoreHabit, deleteHabit, toggleToday,
        isCompletedOn, streakFor, longestStreakFor, totalCompletionsFor,
