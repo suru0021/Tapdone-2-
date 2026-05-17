@@ -26,33 +26,40 @@ const Layout: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: colors.background }}>
-      <main className="flex-1 overflow-y-auto pb-36">
+      <main className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-md mx-auto min-h-full">
           <Outlet />
         </div>
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation — + button center mध्ये */}
       <nav
-        className="fixed bottom-0 left-0 right-0 border-t flex items-center justify-around h-20 safe-pb z-40"
+        className="fixed bottom-0 left-0 right-0 border-t flex items-center justify-around h-20 z-40"
         style={{ backgroundColor: colors.surface, borderColor: colors.border }}
       >
         <div className="flex w-full max-w-md mx-auto justify-around items-center">
           <NavItem to="/home" Icon={Home} label="Home" />
           <NavItem to="/stats" Icon={BarChart3} label="Stats" />
+
+          {/* + Button — center मध्ये, nav च्या आत */}
+          <Link
+            to="/add-habit"
+            className="flex flex-col items-center justify-center flex-1 gap-1 py-2 transition-transform active:scale-90"
+            style={{ color: colors.accentPrimary }}
+          >
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+              style={{ backgroundColor: colors.accentPrimary }}
+            >
+              <Plus size={26} strokeWidth={3} color={colors.background} />
+            </div>
+          </Link>
+
           <NavItem to="/settings" Icon={Settings} label="Settings" />
+          {/* Empty space for balance */}
+          <div className="flex-1" />
         </div>
       </nav>
-
-      {/* Floating Action Button */}
-      <Link
-        to="/add-habit"
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl z-50 transition-transform active:scale-90"
-        style={{ backgroundColor: colors.accentPrimary, color: colors.background }}
-        title="Add Habit"
-      >
-        <Plus size={28} strokeWidth={3} />
-      </Link>
     </div>
   );
 };

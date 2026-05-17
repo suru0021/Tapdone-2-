@@ -6,8 +6,8 @@ import { ProfileProvider } from "./store/ProfileContext";
 import { AnimatePresence } from "motion/react";
 import Celebration from "./components/Celebration";
 import { adService } from "./services/AdService";
+import { Capacitor } from "@capacitor/core";
 
-// Lazy Pages
 const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
 const Stats = lazy(() => import("./pages/Stats"));
@@ -27,16 +27,24 @@ const Root = () => {
   const [onboarded, setOnboarded] = useState(() => localStorage.getItem("tapdone:onboarded") === "1");
 
   useEffect(() => {
-    // Initialize Ads and show Banner
-    adService.initialize().then(() => {
-      adService.showBanner();
-    });
+    // Init ads only on native, with delay to prevent crash
+    if (Capacitor.isNativePlatform()) {
+      const timer = setTimeout(() => {
+        adService.initialize().then(() => {
+          adService.showBanner();
+        }).catch(() => {});
+      }, 2000); // 2 second delay — app loads first, then ads
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
+  useEffect(() => {
     const handleStorage = () => {
       setOnboarded(localStorage.getItem("tapdone:onboarded") === "1");
     };
     window.addEventListener("storage", handleStorage);
-    const interval = setInterval(handleStorage, 500);
+    // Reduced polling interval for less lag
+    const interval = setInterval(handleStorage, 1000);
     return () => {
       window.removeEventListener("storage", handleStorage);
       clearInterval(interval);
