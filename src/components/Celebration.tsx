@@ -21,8 +21,6 @@ const ConfettiPiece: React.FC<{ color: string; delay: number; x: number }> = ({ 
   />
 );
 
-const CONFETTI_COLORS = ["#a855f7", "#fbbf24", "#34d399", "#60a5fa", "#f472b6", "#ffffff"];
-
 const Celebration: React.FC = () => {
   const { colors } = useTheme();
   const [activeAchievement, setActiveAchievement] = useState<string | null>(null);
