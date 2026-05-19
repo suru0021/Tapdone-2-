@@ -43,11 +43,11 @@ const Root = () => {
       setOnboarded(localStorage.getItem("tapdone:onboarded") === "1");
     };
     window.addEventListener("storage", handleStorage);
-    // Reduced polling interval for less lag
-    const interval = setInterval(handleStorage, 1000);
+    // Custom event for same-tab updates (onboarding page dispatches this)
+    window.addEventListener("tapdone:onboarded", handleStorage);
     return () => {
       window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
+      window.removeEventListener("tapdone:onboarded", handleStorage);
     };
   }, []);
 
