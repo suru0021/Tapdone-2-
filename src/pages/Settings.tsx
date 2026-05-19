@@ -165,8 +165,8 @@ const Settings: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] opacity-30 mb-3 px-2" style={{ color: colors.textSecondary }}>Theme</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] opacity-30 mb-3 px-2" style={{ color: colors.textSecondary }}>Basic Themes</h2>
+          <div className="grid grid-cols-3 gap-4 mb-4">
             {[
               { id: 'light', name: 'Zenn', icon: Sun },
               { id: 'dark', name: 'Onyx', icon: Moon },
@@ -184,7 +184,7 @@ const Settings: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setMode(theme.id as any)}
-                  className={`relative h-24 rounded-[28px] border-2 flex flex-col items-center justify-center gap-2 transition-all`}
+                  className="relative h-24 rounded-[28px] border-2 flex flex-col items-center justify-center gap-2 transition-all"
                   style={{
                     backgroundColor: palette.background,
                     borderColor: active ? colors.textPrimary : colors.border,
@@ -197,15 +197,33 @@ const Settings: React.FC = () => {
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-[0.1em]">{theme.name}</span>
                   {active && (
-                    <motion.div 
-                      layoutId="activeThemeDot"
-                      className="absolute top-3 right-3 w-2 h-2 rounded-full" 
-                      style={{ backgroundColor: palette.accentPrimary }}
-                    />
+                    <motion.div layoutId="activeThemeDot" className="absolute top-3 right-3 w-2 h-2 rounded-full" style={{ backgroundColor: palette.accentPrimary }} />
                   )}
                 </motion.button>
               );
             })}
+          </div>
+
+          {/* Premium Themes */}
+          <div
+            className="p-4 rounded-2xl border flex items-center justify-between cursor-pointer"
+            style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+            onClick={() => navigate('/premium')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: colors.accentPrimary + "20" }}>
+                <Crown size={18} style={{ color: colors.accentPrimary }} />
+              </div>
+              <div>
+                <p className="text-sm font-black" style={{ color: colors.textPrimary }}>10 Premium Themes</p>
+                <p className="text-[10px] opacity-50" style={{ color: colors.textSecondary }}>Ferrari • Bugatti • Galaxy & more</p>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              {["#FF2020","#FFD700","#0080FF","#FF6600","#A855F7"].map((c,i) => (
+                <div key={i} className="w-4 h-4 rounded-full border-2 border-black/20" style={{ backgroundColor: c, marginLeft: i > 0 ? -6 : 0 }} />
+              ))}
+            </div>
           </div>
         </section>
 
