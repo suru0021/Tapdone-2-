@@ -45,6 +45,10 @@ export const palettes = {
   },
   // ── PREMIUM THEMES ──
   // 🏎️ Ferrari Red
+  midnight:     { name: "Midnight",     emoji: "🌙", desc: "GitHub dark blue" },
+  ocean:        { name: "Ocean",        emoji: "🌊", desc: "Deep teal calm" },
+  pastel:       { name: "Pastel",       emoji: "🌸", desc: "Soft pink dream" },
+  brutalist:    { name: "Brutalist",    emoji: "⬛", desc: "Bold black & white" },
   ferrari: {
     background: "#0A0000", surface: "#150000", surfaceElevated: "#1F0000",
     textPrimary: "#FFE8E8", textSecondary: "#CC8888", textTertiary: "#663333",

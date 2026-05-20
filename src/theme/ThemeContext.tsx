@@ -34,8 +34,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [appIcon, setAppIconState] = useState<string>("Sparkles");
   const [customAppIcon, setCustomAppIconState] = useState<string | null>(null);
   const [premiumPreviewSecondsLeft, setPremiumPreviewSecondsLeft] = useState(0);
-  const [isPremiumUser, setIsPremiumUser] = useState(() => localStorage.getItem("tapdone:is_premium") === "true");
 
+  const isPremiumUser = localStorage.getItem("tapdone:is_premium") === "true";
   const isPremiumPreview = premiumPreviewSecondsLeft > 0;
 
   useEffect(() => {

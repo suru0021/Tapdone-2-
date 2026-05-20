@@ -29,11 +29,12 @@ const Root = () => {
   useEffect(() => {
     // Init ads only on native, with delay to prevent crash
     if (Capacitor.isNativePlatform()) {
+      // Initialize & preload ads immediately — so rewarded ad is ready instantly
+      adService.initialize().catch(() => {});
+      // Banner after 2s — app loads first
       const timer = setTimeout(() => {
-        adService.initialize().then(() => {
-          adService.showBanner();
-        }).catch(() => {});
-      }, 2000); // 2 second delay — app loads first, then ads
+        adService.showBanner().catch(() => {});
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -43,11 +44,11 @@ const Root = () => {
       setOnboarded(localStorage.getItem("tapdone:onboarded") === "1");
     };
     window.addEventListener("storage", handleStorage);
-    // Custom event for same-tab updates (onboarding page dispatches this)
-    window.addEventListener("tapdone:onboarded", handleStorage);
+    // Reduced polling interval for less lag
+    const interval = setInterval(handleStorage, 1000);
     return () => {
       window.removeEventListener("storage", handleStorage);
-      window.removeEventListener("tapdone:onboarded", handleStorage);
+      clearInterval(interval);
     };
   }, []);
 

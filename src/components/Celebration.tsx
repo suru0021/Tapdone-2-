@@ -1,25 +1,21 @@
 import React, { useEffect, useState, useRef } from "react";
-import { AnimatePresence } from "motion/react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { ACHIEVEMENTS } from "../constants/achievements";
 import { Star, X } from "lucide-react";
 import { useTheme } from "../theme/ThemeContext";
 
-const CONFETTI_COLORS = ["#a855f7", "#fbbf24", "#34d399", "#60a5fa", "#f472b6", "#ffffff"];
-
-// CSS-only confetti — GPU accelerated, no motion library needed
+// Simple CSS confetti — no canvas-confetti library (crashes on Android WebView)
 const ConfettiPiece: React.FC<{ color: string; delay: number; x: number }> = ({ color, delay, x }) => (
-  <div
-    className="fixed top-0 w-2 h-3 rounded-sm pointer-events-none"
-    style={{
-      left: `${x}%`,
-      backgroundColor: color,
-      zIndex: 200,
-      willChange: "transform",
-      animation: `confettiFall 2.5s ${delay}s ease-in forwards`,
-    }}
+  <motion.div
+    className="fixed top-0 w-2 h-3 rounded-sm pointer-events-none z-[200]"
+    style={{ left: `${x}%`, backgroundColor: color }}
+    initial={{ y: -20, opacity: 1, rotate: 0 }}
+    animate={{ y: "100vh", opacity: 0, rotate: 720 }}
+    transition={{ duration: 2.5, delay, ease: "easeIn" }}
   />
 );
+
+const CONFETTI_COLORS = ["#a855f7", "#fbbf24", "#34d399", "#60a5fa", "#f472b6", "#ffffff"];
 
 const Celebration: React.FC = () => {
   const { colors } = useTheme();
@@ -54,10 +50,10 @@ const Celebration: React.FC = () => {
 
   const meta = ACHIEVEMENTS.find(a => a.id === activeAchievement);
 
-  const confettiPieces = Array.from({ length: 10 }, (_, i) => ({
+  const confettiPieces = Array.from({ length: 18 }, (_, i) => ({
     color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-    delay: i * 0.12,
-    x: 5 + (i * 9.5),
+    delay: i * 0.08,
+    x: 5 + (i * 5.5),
   }));
 
   return (

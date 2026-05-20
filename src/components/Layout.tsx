@@ -3,7 +3,6 @@ import { Link, useLocation, Outlet } from "react-router-dom";
 import { Home, BarChart3, Settings, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTheme } from "../theme/ThemeContext";
-import ThemeBackground from "./ThemeBackground";
 
 const Layout: React.FC = () => {
   const { colors } = useTheme();
@@ -26,10 +25,8 @@ const Layout: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: colors.background, position: "relative" }}>
-      {/* Premium theme SVG background */}
-      <ThemeBackground />
-      <main className="flex-1 overflow-y-auto pb-24" style={{ position: "relative", zIndex: 1 }}>
+    <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: colors.background }}>
+      <main className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-md mx-auto min-h-full">
           <Outlet />
         </div>

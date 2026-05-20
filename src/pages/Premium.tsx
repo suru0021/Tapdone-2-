@@ -24,7 +24,6 @@ const Premium: React.FC = () => {
   const [adLoading, setAdLoading] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
   const [showComingSoon, setShowComingSoon] = useState(false);
-  const [showCongrats, setShowCongrats] = useState(false);
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -35,26 +34,32 @@ const Premium: React.FC = () => {
   const canAccessPremium = isPremiumUser || isPremiumPreview;
 
   const handleWatchAds = async () => {
+    // Instant feedback — show loading state immediately
     setAdLoading(true);
     setAdProgress(0);
+
+    // Small vibration feedback if available
+    if ((navigator as any).vibrate) (navigator as any).vibrate(30);
+
+    // Tiny delay so UI updates before ad loads
+    await new Promise(r => setTimeout(r, 100));
+
     try {
-      const success = await adService.showRewardedSequence(AD_COUNT, (current, total) => {
+      const success = await adService.showRewardedSequence(AD_COUNT, (current, _total) => {
         setAdProgress(current);
       });
       setAdLoading(false);
       setAdProgress(0);
       if (success) {
         activatePremiumPreview();
-        // Auto-switch to Ferrari theme as first premium theme
         setMode("ferrari");
-        setShowCongrats(true);
       } else {
-        alert("Ads not available right now. Please try again later.");
+        // Don't show alert — just reset silently, user already saw what happened
+        setAdLoading(false);
       }
     } catch (e) {
       setAdLoading(false);
       setAdProgress(0);
-      alert("Something went wrong. Please try again.");
     }
   };
 
@@ -251,124 +256,6 @@ const Premium: React.FC = () => {
           </motion.button>
         )}
       </footer>
-
-      {/* 🎉 Epic Congratulations Popup — after watching ads */}
-      <AnimatePresence>
-        {showCongrats && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center px-6">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/85 backdrop-blur-md"
-            />
-            {/* Falling emoji confetti */}
-            {["🎉","✨","🏆","💎","⚡","🌟","🎊","🔥"].map((emoji, i) => (
-              <div
-                key={i}
-                className="fixed top-0 text-2xl pointer-events-none"
-                style={{
-                  left: `${8 + i * 12}%`,
-                  zIndex: 310,
-                  animation: `confettiFall ${2 + i * 0.3}s ${i * 0.15}s ease-in infinite`,
-                  willChange: "transform",
-                }}
-              >
-                {emoji}
-              </div>
-            ))}
-            {/* Popup card */}
-            <motion.div
-              initial={{ scale: 0.7, opacity: 0, y: 60 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 40 }}
-              transition={{ type: "spring", damping: 18, stiffness: 200 }}
-              className="relative w-full max-w-sm rounded-[36px] p-8 text-center shadow-2xl border-2"
-              style={{
-                backgroundColor: colors.surface,
-                borderColor: colors.accentPrimary + "80",
-                boxShadow: `0 0 60px ${colors.accentPrimary}40, 0 30px 60px rgba(0,0,0,0.8)`,
-                zIndex: 320,
-              }}
-            >
-              {/* Animated crown */}
-              <div
-                className="text-6xl mb-3 block"
-                style={{ animation: "bounce 1s ease-in-out infinite" }}
-              >
-                👑
-              </div>
-
-              {/* CONGRATULATIONS */}
-              <motion.h2
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="text-2xl font-black tracking-tight mb-1"
-                style={{ color: colors.textPrimary }}
-              >
-                CONGRATULATIONS!
-              </motion.h2>
-
-              {/* Emojis row */}
-              <div className="text-2xl mb-4 tracking-widest">🎉 🏆 ✨ 💎 🔥</div>
-
-              {/* 10 minutes text */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.3, type: "spring" }}
-                className="mb-4"
-              >
-                <span
-                  className="text-6xl font-black block"
-                  style={{ color: colors.accentPrimary, textShadow: `0 0 20px ${colors.accentPrimary}60` }}
-                >
-                  10
-                </span>
-                <span className="text-base font-bold opacity-70" style={{ color: colors.textSecondary }}>
-                  Minutes Premium Unlocked!
-                </span>
-              </motion.div>
-
-              {/* Features unlocked */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="rounded-2xl p-4 mb-6 text-left space-y-2"
-                style={{ backgroundColor: colors.accentPrimary + "12", borderColor: colors.accentPrimary + "30", border: "1px solid" }}
-              >
-                {[
-                  "🏎️ All 10 Premium Themes Unlocked",
-                  "🎨 Ferrari Theme Auto-Applied",
-                  "⭐ Premium Active for 10 Minutes",
-                  "💎 No Ads During Preview",
-                ].map((item, i) => (
-                  <p key={i} className="text-xs font-semibold" style={{ color: colors.textPrimary, opacity: 0.85 }}>
-                    {item}
-                  </p>
-                ))}
-              </motion.div>
-
-              {/* Let's Go button */}
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowCongrats(false)}
-                className="w-full h-14 rounded-2xl text-base font-black tracking-wide shadow-xl"
-                style={{
-                  backgroundColor: colors.accentPrimary,
-                  color: colors.background,
-                  boxShadow: `0 8px 24px ${colors.accentPrimary}50`,
-                }}
-              >
-                🚀 Let's Go!
-              </motion.button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Coming Soon Modal */}
       <AnimatePresence>
