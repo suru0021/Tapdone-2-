@@ -81,7 +81,7 @@ const Settings: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="px-6 pt-10"
+      className="px-6 pt-10 relative z-10"
     >
       <h1 className="text-3xl font-serif italic font-medium tracking-tight mb-10" style={{ color: colors.textPrimary }}>
         Settings
@@ -166,7 +166,7 @@ const Settings: React.FC = () => {
 
         <section>
           <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] opacity-30 mb-3 px-2" style={{ color: colors.textSecondary }}>Basic Themes</h2>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             {[
               { id: 'light', name: 'Zenn', icon: Sun },
               { id: 'dark', name: 'Onyx', icon: Moon },
@@ -177,27 +177,27 @@ const Settings: React.FC = () => {
               { id: 'brutalist', name: 'Raw', icon: Shield },
             ].map((theme) => {
               const active = mode === theme.id;
-              const palette = (Palettes as any)[theme.id];
+              const p = (Palettes as any)[theme.id];
+              if (!p) return null;
               return (
                 <motion.button
                   key={theme.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.93 }}
                   onClick={() => setMode(theme.id as any)}
-                  className="relative h-24 rounded-[28px] border-2 flex flex-col items-center justify-center gap-2 transition-all"
+                  className="relative h-20 rounded-[20px] border-2 flex flex-col items-center justify-center gap-1.5"
                   style={{
-                    backgroundColor: palette.background,
-                    borderColor: active ? colors.textPrimary : colors.border,
-                    color: palette.textPrimary,
-                    boxShadow: active ? `0 12px 24px ${palette.accentPrimary}15` : "none"
+                    backgroundColor: p.background,
+                    borderColor: active ? p.accentPrimary : p.border,
+                    color: p.textPrimary,
                   }}
                 >
-                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ backgroundColor: palette.surfaceElevated }}>
-                    <theme.icon size={18} />
+                  <div className="flex gap-1">
+                    <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: p.accentPrimary }} />
+                    <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: p.success }} />
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.1em]">{theme.name}</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.1em]" style={{ color: p.textPrimary }}>{theme.name}</span>
                   {active && (
-                    <motion.div layoutId="activeThemeDot" className="absolute top-3 right-3 w-2 h-2 rounded-full" style={{ backgroundColor: palette.accentPrimary }} />
+                    <motion.div layoutId="activeThemeDot" className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: p.accentPrimary }} />
                   )}
                 </motion.button>
               );

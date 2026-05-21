@@ -87,7 +87,7 @@ const Stats: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="px-6 pt-10"
+      className="px-6 pt-10 relative z-10"
     >
       <h1 className="text-3xl font-bold tracking-tight mb-1" style={{ color: colors.textPrimary }}>
         Statistics

@@ -6,6 +6,7 @@ import { useTheme } from "../theme/ThemeContext";
 import { activatePremiumPreview } from "../theme/ThemeContext";
 import { adService } from "../services/AdService";
 import { THEME_META, PREMIUM_THEMES, BASIC_THEMES } from "../theme/colors";
+import ThemeBackground from "../components/ThemeBackground";
 
 const FEATURES = [
   { Icon: Palette,   title: "10 Exclusive Themes",    sub: "Ferrari, Bugatti, Galaxy, Neon & more" },
@@ -72,6 +73,7 @@ const Premium: React.FC = () => {
       className="fixed inset-0 z-[60] flex flex-col overflow-y-auto"
       style={{ backgroundColor: colors.background }}
     >
+      <ThemeBackground />
       {/* Header */}
       <header className="flex items-center justify-between px-6 pt-12 pb-4">
         <div />

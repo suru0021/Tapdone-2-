@@ -192,7 +192,7 @@ const Home: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="px-6 pt-10"
+      className="px-6 pt-10 relative z-10"
     >
       {/* Undo Toast */}
       <AnimatePresence>

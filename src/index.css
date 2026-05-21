@@ -45,3 +45,23 @@
 .safe-pb {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Performance — GPU acceleration for smooth animations */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+button, a {
+  touch-action: manipulation;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+/* Prevent layout thrash on scroll */
+main {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}

@@ -5,7 +5,7 @@ import { Sparkles, User, Palette, CheckCircle2, ChevronRight, ArrowLeft, Bell } 
 import { useTheme } from "../theme/ThemeContext";
 import { useProfile } from "../store/ProfileContext";
 import IconPicker from "../components/IconPicker";
-import { palettes, ThemeMode } from "../theme/colors";
+import { palettes, ThemeMode, BASIC_THEMES, THEME_META } from "../theme/colors";
 
 const Onboarding: React.FC = () => {
   const { colors, mode, setMode } = useTheme();
@@ -39,6 +39,7 @@ const Onboarding: React.FC = () => {
 
   const handleFinish = () => {
     localStorage.setItem("tapdone:onboarded", "1");
+      window.dispatchEvent(new Event("tapdone:onboarded"));
     updateProfile({ name: name || "User", image });
     navigate("/home");
   };
@@ -137,26 +138,36 @@ const Onboarding: React.FC = () => {
             )}
 
             {currentStep.id === "theme" && (
-              <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {(Object.keys(palettes) as ThemeMode[]).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setMode(m)}
-                    className="p-4 rounded-2xl border-2 flex flex-col gap-3 transition-all active:scale-95"
-                    style={{ 
-                      backgroundColor: palettes[m].background,
-                      borderColor: mode === m ? colors.accentPrimary : colors.border
-                    }}
-                  >
-                    <div className="flex gap-1.5">
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: palettes[m].accentPrimary }} />
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: palettes[m].success }} />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: palettes[m].textPrimary }}>
-                      {m}
-                    </span>
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-3">
+                {(BASIC_THEMES as ThemeMode[]).map((m) => {
+                  const p = palettes[m];
+                  const active = mode === m;
+                  return (
+                    <button
+                      key={m}
+                      onClick={() => setMode(m)}
+                      className="p-4 rounded-2xl border-2 flex flex-col gap-3 active:scale-95 transition-transform"
+                      style={{
+                        backgroundColor: p.background,
+                        borderColor: active ? p.accentPrimary : p.border,
+                        boxShadow: active ? `0 0 0 2px ${p.accentPrimary}` : "none"
+                      }}
+                    >
+                      <div className="flex gap-1.5">
+                        <div className="w-5 h-5 rounded-full border border-white/10" style={{ backgroundColor: p.accentPrimary }} />
+                        <div className="w-5 h-5 rounded-full border border-white/10" style={{ backgroundColor: p.success }} />
+                      </div>
+                      <span className="text-[11px] font-black uppercase tracking-wider" style={{ color: p.textPrimary }}>
+                        {THEME_META[m]?.name || m}
+                      </span>
+                      {active && (
+                        <span className="text-[9px] font-bold opacity-60" style={{ color: p.textSecondary }}>
+                          Selected ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </motion.div>

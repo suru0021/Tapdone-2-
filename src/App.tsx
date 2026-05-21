@@ -3,75 +3,87 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { ThemeProvider } from "./theme/ThemeContext";
 import { HabitProvider } from "./store/HabitContext";
 import { ProfileProvider } from "./store/ProfileContext";
-import { AnimatePresence } from "motion/react";
 import Celebration from "./components/Celebration";
 import { adService } from "./services/AdService";
 import { Capacitor } from "@capacitor/core";
+import { useTheme } from "./theme/ThemeContext";
 
-const Layout = lazy(() => import("./components/Layout"));
-const Home = lazy(() => import("./pages/Home"));
-const Stats = lazy(() => import("./pages/Stats"));
-const Settings = lazy(() => import("./pages/Settings"));
+const Layout     = lazy(() => import("./components/Layout"));
+const Home       = lazy(() => import("./pages/Home"));
+const Stats      = lazy(() => import("./pages/Stats"));
+const Settings   = lazy(() => import("./pages/Settings"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
-const AddHabit = lazy(() => import("./pages/AddHabit"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Premium = lazy(() => import("./pages/Premium"));
+const AddHabit   = lazy(() => import("./pages/AddHabit"));
+const Profile    = lazy(() => import("./pages/Profile"));
+const Premium    = lazy(() => import("./pages/Premium"));
 
-const LoadingFallback = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-black">
-    <div className="w-8 h-8 border-4 border-white/10 border-t-white rounded-full animate-spin" />
-  </div>
-);
+const Spinner = () => {
+  const { colors } = useTheme();
+  return (
+    <div className="fixed inset-0 flex items-center justify-center"
+      style={{ backgroundColor: colors.background }}>
+      <div className="w-7 h-7 rounded-full border-2 animate-spin"
+        style={{ borderColor: colors.border, borderTopColor: colors.accentPrimary }}/>
+    </div>
+  );
+};
+
+// Helper to fire onboarding change event
+export const notifyOnboardingDone = () => {
+  window.dispatchEvent(new Event("tapdone:onboarded"));
+};
 
 const Root = () => {
-  const [onboarded, setOnboarded] = useState(() => localStorage.getItem("tapdone:onboarded") === "1");
+  const { colors } = useTheme();
+  const [onboarded, setOnboarded] = useState(
+    () => localStorage.getItem("tapdone:onboarded") === "1"
+  );
 
   useEffect(() => {
-    // Init ads only on native, with delay to prevent crash
     if (Capacitor.isNativePlatform()) {
-      // Initialize & preload ads immediately — so rewarded ad is ready instantly
       adService.initialize().catch(() => {});
-      // Banner after 2s — app loads first
-      const timer = setTimeout(() => {
-        adService.showBanner().catch(() => {});
-      }, 2000);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => adService.showBanner().catch(() => {}), 2000);
+      return () => clearTimeout(t);
     }
   }, []);
 
   useEffect(() => {
-    const handleStorage = () => {
-      setOnboarded(localStorage.getItem("tapdone:onboarded") === "1");
+    // Use custom event instead of polling — zero CPU usage
+    const handler = () => setOnboarded(true);
+    window.addEventListener("tapdone:onboarded", handler);
+    // Fallback storage listener for other tabs
+    const storageHandler = (e: StorageEvent) => {
+      if (e.key === "tapdone:onboarded" && e.newValue === "1") setOnboarded(true);
     };
-    window.addEventListener("storage", handleStorage);
-    // Reduced polling interval for less lag
-    const interval = setInterval(handleStorage, 1000);
+    window.addEventListener("storage", storageHandler);
     return () => {
-      window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
+      window.removeEventListener("tapdone:onboarded", handler);
+      window.removeEventListener("storage", storageHandler);
     };
   }, []);
 
   return (
-    <Router>
-      <Celebration />
-      <Suspense fallback={<LoadingFallback />}>
-        <AnimatePresence mode="wait">
+    <div style={{ backgroundColor: colors.background, minHeight: "100vh" }}>
+      <Router>
+        <Celebration />
+        <Suspense fallback={<Spinner />}>
           <Routes>
-            <Route path="/" element={onboarded ? <Navigate to="/home" replace /> : <Navigate to="/onboarding" replace />} />
+            <Route path="/" element={
+              onboarded ? <Navigate to="/home" replace /> : <Navigate to="/onboarding" replace />
+            }/>
             <Route path="/onboarding" element={<Onboarding />} />
             <Route element={<Layout />}>
-              <Route path="/home" element={<Home />} />
-              <Route path="/stats" element={<Stats />} />
+              <Route path="/home"     element={<Home />} />
+              <Route path="/stats"    element={<Stats />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="/add-habit" element={<AddHabit />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/premium" element={<Premium />} />
+            <Route path="/profile"   element={<Profile />} />
+            <Route path="/premium"   element={<Premium />} />
           </Routes>
-        </AnimatePresence>
-      </Suspense>
-    </Router>
+        </Suspense>
+      </Router>
+    </div>
   );
 };
 
