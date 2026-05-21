@@ -31,7 +31,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.7'
+          gradle-version: '8.5'
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
@@ -45,7 +45,7 @@ jobs:
       - name: Fix Gradle wrapper jar
         run: |
           cd android
-          gradle wrapper --gradle-version=8.7
+          gradle wrapper --gradle-version=8.5
           chmod +x gradlew
 
       - name: Build Debug APK
