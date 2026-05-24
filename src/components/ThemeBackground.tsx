@@ -19,42 +19,39 @@ const ThemeBackground: React.FC = memo(() => {
   if (mode === "ferrari") return (
     <svg style={svgStyle} viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="rg" cx="50%" cy="25%" r="65%">
+        <radialGradient id="rg" cx="50%" cy="22%" r="65%">
           <stop offset="0%" stopColor="#FF2020" stopOpacity="0.2"/>
           <stop offset="100%" stopColor="#0A0000" stopOpacity="0"/>
         </radialGradient>
       </defs>
       <rect width="390" height="844" fill="url(#rg)"/>
-      {/* Prancing Horse */}
-      <g transform="translate(195,230)" fill="#FF1A1A" opacity="0.14">
-        <path d="M0,-72 C10,-72 22,-65 20,-52 C30,-55 40,-44 36,-32 C46,-30 50,-16 42,-8 C50,2 44,16 34,12 C36,26 24,34 14,26 C12,40 2,44 0,36 C-2,44 -12,40 -14,26 C-24,34 -36,26 -34,12 C-44,16 -50,2 -42,-8 C-50,-16 -46,-30 -36,-32 C-40,-44 -30,-55 -20,-52 C-22,-65 -10,-72 0,-72Z"/>
-        <rect x="-14" y="36" width="10" height="52" rx="4"/>
-        <rect x="4" y="36" width="10" height="52" rx="4"/>
-        <path d="M16,0 Q42,-18 46,-44 Q52,-28 36,8Z" opacity="0.8"/>
-        <path d="M-2,-72 Q-12,-95 -4,-108 Q6,-95 4,-72Z"/>
+      {/* Accurate Ferrari Prancing Horse */}
+      <g transform="translate(195,235) scale(1.2)" opacity="0.15" fill="#FF1500">
+        <path d="M0,-78 C8,-78 16,-74 20,-66 C28,-70 38,-62 34,-50 C44,-48 50,-36 44,-26 C52,-20 54,-6 46,2 C54,14 46,28 34,22 L30,38 C36,52 28,62 18,58 L14,68 C16,80 6,86 0,80 C-6,86 -16,80 -14,68 L-18,58 C-28,62 -36,52 -30,38 L-34,22 C-46,28 -54,14 -46,2 C-54,-6 -52,-20 -44,-26 C-50,-36 -44,-48 -34,-50 C-38,-62 -28,-70 -20,-66 C-16,-74 -8,-78 0,-78Z"/>
+        <path d="M14,68 L20,68 L24,100 L30,118 L14,118 L10,100Z"/>
+        <path d="M24,100 Q38,90 44,100 Q42,114 26,116Z"/>
+        <path d="M30,38 L38,42 L42,78 L46,118 L30,118 L26,78Z"/>
+        <path d="M-14,68 L-20,68 L-24,108 L-30,118 L-14,118 L-10,108Z"/>
+        <path d="M-30,38 L-38,42 L-42,78 L-46,118 L-30,118 L-26,78Z"/>
+        <path d="M-34,22 Q-62,8 -70,-14 Q-74,-34 -58,-42 Q-44,-30 -46,-12 Q-42,6 -34,18Z"/>
+        <path d="M0,-78 Q10,-104 4,-120 Q-2,-120 -4,-104 Q-6,-90 0,-78Z"/>
+        <path d="M8,-74 Q18,-90 12,-98 Q4,-90 4,-74Z"/>
       </g>
       {/* Ferrari Shield */}
-      <path d="M195,108 L248,126 L254,198 L195,226 L136,198 L142,126Z"
-        fill="none" stroke="#FF2020" strokeWidth="1.5" opacity="0.13"/>
-      <path d="M195,118 L238,133 L243,192 L195,216 L147,192 L152,133Z"
-        fill="none" stroke="#FF2020" strokeWidth="0.6" opacity="0.07"/>
+      <rect x="153" y="100" width="84" height="106" rx="4"
+        fill="none" stroke="#FFD700" strokeWidth="1.8" opacity="0.1"/>
+      <line x1="153" y1="142" x2="237" y2="142"
+        stroke="#FFD700" strokeWidth="1.2" opacity="0.07"/>
       {/* Speed lines */}
-      <line x1="0" y1="440" x2="390" y2="420" stroke="#FF2020" strokeWidth="1" opacity="0.06"/>
-      <line x1="0" y1="468" x2="390" y2="450" stroke="#FF2020" strokeWidth="0.7" opacity="0.04"/>
-      <line x1="0" y1="496" x2="390" y2="480" stroke="#FF2020" strokeWidth="0.5" opacity="0.03"/>
-      {/* Wordmark */}
-      <text x="195" y="756" textAnchor="middle" fontSize="46" fontWeight="900"
-        fontFamily="Georgia,serif" fill="#FF2020" opacity="0.06" letterSpacing="8">FERRARI</text>
-      {/* Carbon fiber rows */}
-      <g opacity="0.02" fill="#FF2020">
-        {[0,1,2,3,4,5,6,7].map(r => [0,1,2,3,4,5,6,7,8].map(c => (
-          <rect key={`${r}${c}`} x={c*46} y={580+r*30} width="22" height="14" rx="2"/>
-        )))}
-      </g>
+      <line x1="0" y1="450" x2="390" y2="430" stroke="#FF2020" strokeWidth="1" opacity="0.055"/>
+      <line x1="0" y1="476" x2="390" y2="458" stroke="#FF2020" strokeWidth="0.7" opacity="0.035"/>
+      <line x1="0" y1="502" x2="390" y2="486" stroke="#FF2020" strokeWidth="0.5" opacity="0.022"/>
+      <text x="195" y="760" textAnchor="middle" fontSize="44" fontWeight="900"
+        fontFamily="Georgia,serif" fill="#FF2020" opacity="0.055" letterSpacing="10">FERRARI</text>
     </svg>
   );
 
-  // Lamborghini
+    // Lamborghini
   if (mode === "lamborghini") return (
     <svg style={svgStyle} viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
       <defs>

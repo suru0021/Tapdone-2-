@@ -88,7 +88,7 @@ const HabitCard: React.FC<Props> = memo(({ name, iconName, color, streak, comple
       }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileTap={{ scale: 0.97 }}
-      transition={{ type: "spring", damping: isHighlighted ? 20 : 25, stiffness: isHighlighted ? 300 : 400 }}
+      transition={{ type: "spring", damping: 30, stiffness: 500 }}
       className={`flex items-center p-5 rounded-[32px] border mb-4 cursor-pointer select-none transition-all group overflow-hidden ${isHighlighted ? 'ring-4 ring-offset-4 ring-offset-zinc-950' : ''}`}
       style={{
         // @ts-ignore
